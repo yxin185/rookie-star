@@ -3,6 +3,8 @@ package com.rookie.controller;
 import com.rookie.pojo.bo.UserBO;
 import com.rookie.service.UserService;
 import com.rookie.utils.RookieJsonResult;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 用户登录相关的控制
  */
+@Api(value = "注册登录", tags = {"用户注册登录的相关接口"})
 @RestController
 @RequestMapping("passport")
 public class PassportController {
@@ -17,6 +20,7 @@ public class PassportController {
     @Autowired
     private UserService userService;
 
+    @ApiOperation(value = "判断用户是否存在", notes = "判断用户是否存在", httpMethod = "GET")
     @GetMapping("/usernameIsExist")
     public RookieJsonResult usernameIsExist(@RequestParam String username) {
         // 1. 判断用户名不能为空
@@ -33,6 +37,7 @@ public class PassportController {
         return RookieJsonResult.ok();
     }
 
+    @ApiOperation(value = "用户注册", notes = "用户注册", httpMethod = "POST")
     @PostMapping("/regist")
     public RookieJsonResult regist(@RequestBody UserBO userBO) {
         String username = userBO.getUsername();

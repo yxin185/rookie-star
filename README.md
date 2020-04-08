@@ -203,3 +203,90 @@ public class RookieApplication {
 
 3. 在service模块中添加相应逻辑，使用mapper操作数据库。注意，在Service的实现类上面要添加注解表明这是一个Bean，`@Service`
 4. 在api模块中添加测试StuFooController，访问数据库中的stu表，查询数据。记得添加`@RestController`注解
+
+# 实现单体电商项目核心功能
+
+- 用户注册与登录
+- Cookie 与 Session
+- 集成 Swagger2 api
+- 分类设计与实现
+- 首页商品推荐
+- 商品搜索与分页
+- 商品详情与评论渲染
+- 购物车与订单
+- 微信与支付宝支付
+
+## 1. 用户注册登录流程
+
+### 1. 用户名注册
+
+1. 首先创建一个`UserService`接口，用来定义用户相关的方法
+
+```java
+public interface UserService {
+    // 用户注册的时候需要先去检查数据库中是否有这个用户存在了
+    public boolean queryUsernameIsExist(String username);
+    // UserBO 相当于是根据从前端取到的用户名称、密码构造一个新的用户
+    public Users createUser(UserBO userBO);
+}
+```
+
+2. 在`UserServiceImpl`中实现接口中的两个方法
+   1. 其中查询是否存在的方法需要以`Propagation.SUPPORTS`的事务传播级别
+   2. 创建用户的事务传播级别为`Propagation.REQUIRED`，创建失败需要回滚
+3. 自定义响应数据结构 `RookieJsonResult`，前端接受此类数据（json object)后，可自行根据业务去实现相关功能
+4. 其中为了设置全局唯一的用户ID，引入了`org.n3r.idworder`包
+5. 为了设置时间，也引入了`DateUtil`类
+6. 为了加密用户的密码，我们引入了`MD5Utils`
+7. 引入性别枚举
+8. 前端到后端的参数使用`UserBO`进行传递
+9. 使用`postman`测试`api`层`PassportController`的功能是否正常
+
+### 2. 邮箱注册
+
+### 3. 手机号注册
+
+## 2. 集成 Swagger2 API
+
+> 为了减少程序员撰写文档的时间，使用`Swagger2`，只需要通过代码就能生成文档API提供给前端人员对接
+
+```xml
+<!-- swagger2 配置 -->
+<dependency>
+	<groupId>io.springfox</groupId>
+	<artifactId>springfox-swagger2</artifactId>
+	<version>2.4.0</version>
+</dependency>
+<dependency>
+	<groupId>io.springfox</groupId>
+	<artifactId>springfox-swagger-ui</artifactId>
+	<version>2.4.0</version>
+</dependency>
+<dependency>
+	<groupId>com.github.xiaoymin</groupId>
+	<artifactId>swagger-bootstrap-ui</artifactId>
+	<version>1.6</version>
+</dependency>
+```
+
+1. 在`api`模块创建`config`包，创建`Swagger2.java`对象，做相关配置
+2. 做好配置启动项目后，在网页中查看`http://localhost:8088/swagger-ui.html`，就能看到一份文档了。`http://localhost:8088/doc.html`也可以
+3. 要想忽略某一个Controller，在他对应的类上方加上`@ApiIgnore`即可
+4. 给Controller类加上接口注解，`@Api(value = "注册登录", tags = {"用户注册登录的相关接口"})`
+5. 给类中某一个接口加上注解，`@ApiOperation(value = "判断用户是否存在", notes = "判断用户是否存在", httpMethod = "GET")` httpMethod要与下方请求方法相互匹配
+
+![](https://yxin-images.oss-cn-shenzhen.aliyuncs.com/img/Snipaste_2020-04-08_20-32-23.jpg)
+
+6. 对上面的请求参数，我们也可以加上注释，在`UserBO`类中。使用`@ApiModel`和`@ApiModelProperty`
+
+```java
+@ApiModel(value = "用户对象BO", description = "从客户端，由用户传入的数据封装在此entity中")
+public class UserBO {
+    @ApiModelProperty(value = "用户名", name = "username", example = "Allen", required = true)
+    private String username;
+    @ApiModelProperty(value = "密码", name = "password", example = "123456", required = true)
+    private String password;
+    @ApiModelProperty(value = "确认密码", name = "confirmPassword", example = "123456", required = true)
+    private String confirmPassword;
+```
+
