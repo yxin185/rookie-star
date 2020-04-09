@@ -1,13 +1,20 @@
 package com.rookie.controller;
 
+import com.rookie.pojo.Users;
 import com.rookie.pojo.bo.UserBO;
 import com.rookie.service.UserService;
+import com.rookie.utils.CookieUtils;
+import com.rookie.utils.JsonUtils;
+import com.rookie.utils.MD5Utils;
 import com.rookie.utils.RookieJsonResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * 用户登录相关的控制
@@ -39,7 +46,9 @@ public class PassportController {
 
     @ApiOperation(value = "用户注册", notes = "用户注册", httpMethod = "POST")
     @PostMapping("/regist")
-    public RookieJsonResult regist(@RequestBody UserBO userBO) {
+    public RookieJsonResult regist(@RequestBody UserBO userBO,
+                                   HttpServletRequest request,
+                                   HttpServletResponse response) {
         String username = userBO.getUsername();
         String password = userBO.getPassword();
         String confirmPwd = userBO.getConfirmPassword();
@@ -65,8 +74,53 @@ public class PassportController {
         }
 
         // 4. 实现注册
-        userService.createUser(userBO);
+        Users userResult = userService.createUser(userBO);
+        // 隐藏用户的部分属性
+        userResult = setNullProperty(userResult);
+        CookieUtils.setCookie(request, response, "user",
+                JsonUtils.objectToJson(userResult), true);
+
+
         // 5. 注册完成
         return RookieJsonResult.ok();
+    }
+
+    @ApiOperation(value = "用户登录", notes = "用户登录", httpMethod = "POST")
+    @PostMapping("/login")
+    public RookieJsonResult login(@RequestBody UserBO userBO,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) throws Exception {
+        String username = userBO.getUsername();
+        String password = userBO.getPassword();
+
+        // 0. 校验用户名、密码、确认密码不能为空
+        if (StringUtils.isBlank(username)
+                || StringUtils.isBlank(password)) {
+            return RookieJsonResult.errorMsg("用户名或密码为空");
+        }
+
+        Users userResult = userService.queryUserForLogin(username,
+                MD5Utils.getMD5Str(password));
+        // 没查到对应的用户
+        if (userResult == null) {
+            return RookieJsonResult.errorMsg("用户名或密码不正确");
+        }
+        // 隐藏用户的部分属性
+        userResult = setNullProperty(userResult);
+
+        CookieUtils.setCookie(request, response, "user",
+                JsonUtils.objectToJson(userResult), true);
+
+        return RookieJsonResult.ok(userResult);
+    }
+
+    private Users setNullProperty(Users userResult) {
+        userResult.setPassword(null);
+        userResult.setMobile(null);
+        userResult.setEmail(null);
+        userResult.setCreatedTime(null);
+        userResult.setUpdatedTime(null);
+        userResult.setBirthday(null);
+        return userResult;
     }
 }
