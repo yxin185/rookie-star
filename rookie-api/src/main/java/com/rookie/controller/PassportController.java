@@ -123,4 +123,17 @@ public class PassportController {
         userResult.setBirthday(null);
         return userResult;
     }
+
+    @ApiOperation(value = "用户退出登录", notes = "用户退出登录", httpMethod = "POST")
+    @PostMapping("/logout")
+    public RookieJsonResult logout(@RequestParam String userId,
+                                   HttpServletRequest request,
+                                   HttpServletResponse response) {
+        CookieUtils.deleteCookie(request, response, "user");
+
+        // TODO 生成用户token，存入redis会话
+        // TODO 同步购物车数据
+
+        return RookieJsonResult.ok();
+    }
 }

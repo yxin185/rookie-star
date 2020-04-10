@@ -41,8 +41,9 @@ spring:
 mybatis:
   type-aliases-package: com.rookie.pojo          # 所有POJO类所在包路径
   mapper-locations: classpath:mapper/*.xml      # mapper映射文件,在rookie-mapper中的resources中
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  开启 mybatis 日志 sql 打印
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 ############################################################
 #
