@@ -1,6 +1,6 @@
 package com.rookie.service.impl;
 
-import com.rookie.enums.Sex;
+import com.rookie.enums.SexEnum;
 import com.rookie.mapper.UsersMapper;
 import com.rookie.pojo.Users;
 import com.rookie.pojo.bo.UserBO;
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
         // 默认生日
         user.setBirthday(DateUtil.stringToDate("1900-01-01"));
         // 默认性别为 保密
-        user.setSex(Sex.SECRET.type);
+        user.setSex(SexEnum.SECRET.type);
 
         user.setCreatedTime(new Date());
         user.setUpdatedTime(new Date());
