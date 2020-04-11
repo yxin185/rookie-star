@@ -2,6 +2,7 @@ package com.rookie.service;
 
 import com.rookie.pojo.Category;
 import com.rookie.pojo.vo.CategoryVO;
+import com.rookie.pojo.vo.NewItemsVO;
 
 import java.util.List;
 
@@ -19,4 +20,11 @@ public interface CategoryService {
      * @return
      */
     List<CategoryVO> getSubCatList(Integer rootCatId);
+
+    /**
+     * 查询首页每个一级分类下的6条最新商品数据
+     * @param rootCatId
+     * @return
+     */
+    List<NewItemsVO> getSixNewItemsLazy(Integer rootCatId);
 }

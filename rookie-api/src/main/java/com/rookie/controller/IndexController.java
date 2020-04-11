@@ -5,6 +5,7 @@ import com.rookie.enums.YesOrNoEnum;
 import com.rookie.pojo.Carousel;
 import com.rookie.pojo.Category;
 import com.rookie.pojo.vo.CategoryVO;
+import com.rookie.pojo.vo.NewItemsVO;
 import com.rookie.service.CarouselService;
 import com.rookie.service.CategoryService;
 import com.rookie.utils.RookieJsonResult;
@@ -58,6 +59,22 @@ public class IndexController {
         }
 
         List<CategoryVO> result = categoryService.getSubCatList(rootCatId);
+        return RookieJsonResult.ok(result);
+    }
+
+    @ApiOperation(value = "查询每个一级分类下的最新6条商品数据", notes = "查询每个一级分类下的最新6条商品数据", httpMethod = "GET")
+    @GetMapping("/sixNewItems/{rootCatId}")
+    public RookieJsonResult sixNewItems(
+            @ApiParam(name = "rootCatId", value = "一级分类id", required = true)
+            @PathVariable Integer rootCatId) {
+        /**
+         * 需要手动进行校验 rootCatId 是否为空，避免恶意攻击
+         */
+        if (rootCatId == null) {
+            return RookieJsonResult.errorMsg("分类不存在");
+        }
+
+        List<NewItemsVO> result = categoryService.getSixNewItemsLazy(rootCatId);
         return RookieJsonResult.ok(result);
     }
 

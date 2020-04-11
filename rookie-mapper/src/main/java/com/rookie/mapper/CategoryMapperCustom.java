@@ -1,7 +1,12 @@
 package com.rookie.mapper;
 
 
+import com.rookie.pojo.vo.CategoryVO;
+import com.rookie.pojo.vo.NewItemsVO;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
+import java.util.Map;
 
 public interface CategoryMapperCustom{
 
@@ -10,5 +15,7 @@ public interface CategoryMapperCustom{
      * @param rootCatId
      * @return
      */
-    List getSubCatList(Integer rootCatId);
+    List<CategoryVO> getSubCatList(Integer rootCatId);
+
+    List<NewItemsVO> getSixNewItemsLazy(@Param("paramsMap") Map<String, Object> map);
 }
