@@ -4,13 +4,16 @@ package com.rookie.controller;
 import com.rookie.enums.YesOrNoEnum;
 import com.rookie.pojo.Carousel;
 import com.rookie.pojo.Category;
+import com.rookie.pojo.vo.CategoryVO;
 import com.rookie.service.CarouselService;
 import com.rookie.service.CategoryService;
 import com.rookie.utils.RookieJsonResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,4 +44,21 @@ public class IndexController {
         List<Category> result = categoryService.queryAllRootLevelCat();
         return RookieJsonResult.ok(result);
     }
+
+    @ApiOperation(value = "获取商品子分类", notes = "获取商品子分类", httpMethod = "GET")
+    @GetMapping("/subCat/{rootCatId}")
+    public RookieJsonResult subCat(
+                @ApiParam(name = "rootCatId", value = "一级分类id", required = true)
+                @PathVariable Integer rootCatId) {
+        /**
+         * 需要手动进行校验 rootCatId 是否为空，避免恶意攻击
+         */
+        if (rootCatId == null) {
+            return RookieJsonResult.errorMsg("分类不存在");
+        }
+
+        List<CategoryVO> result = categoryService.getSubCatList(rootCatId);
+        return RookieJsonResult.ok(result);
+    }
+
 }

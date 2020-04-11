@@ -2,7 +2,9 @@ package com.rookie.service.impl;
 
 import com.rookie.enums.CategoryLevelEnum;
 import com.rookie.mapper.CategoryMapper;
+import com.rookie.mapper.CategoryMapperCustom;
 import com.rookie.pojo.Category;
+import com.rookie.pojo.vo.CategoryVO;
 import com.rookie.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,9 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryMapper categoryMapper;
 
+    @Autowired
+    private CategoryMapperCustom categoryMapperCustom;
+
     @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public List<Category> queryAllRootLevelCat() {
@@ -29,6 +34,12 @@ public class CategoryServiceImpl implements CategoryService {
         List<Category> result = categoryMapper.selectByExample(example);
 
         return result;
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public List<CategoryVO> getSubCatList(Integer rootCatId) {
+        return categoryMapperCustom.getSubCatList(rootCatId);
     }
 
 
