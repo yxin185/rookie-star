@@ -7,6 +7,7 @@ import com.rookie.mapper.*;
 import com.rookie.pojo.*;
 import com.rookie.pojo.vo.CommentLevelCountsVO;
 import com.rookie.pojo.vo.ItemCommentVO;
+import com.rookie.pojo.vo.SearchItemsVO;
 import com.rookie.service.ItemService;
 import com.rookie.utils.DesensitizationUtil;
 import com.rookie.utils.PagedGridResult;
@@ -142,5 +143,33 @@ public class ItemServiceImpl implements ItemService {
         grid.setTotal(pageList.getPages());
         grid.setRecords(pageList.getTotal());
         return grid;
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public PagedGridResult searchItems(String keywords, String sort,
+                                       Integer page, Integer pageSize) {
+        Map<String,Object> map = new HashMap<>();
+        map.put("keywords", keywords);
+        map.put("sort", sort);
+
+        PageHelper.startPage(page, pageSize);
+        List<SearchItemsVO> list = itemsMapperCustom.searchItems(map);
+
+        return setterPagedGrid(list, page);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public PagedGridResult searchItemsByThirdCat(Integer catId, String sort,
+                                       Integer page, Integer pageSize) {
+        Map<String,Object> map = new HashMap<>();
+        map.put("catId", catId);
+        map.put("sort", sort);
+
+        PageHelper.startPage(page, pageSize);
+        List<SearchItemsVO> list = itemsMapperCustom.searchItemsByThirdCat(map);
+
+        return setterPagedGrid(list, page);
     }
 }

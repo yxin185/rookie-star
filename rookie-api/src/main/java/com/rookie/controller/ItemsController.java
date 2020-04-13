@@ -103,5 +103,71 @@ public class ItemsController extends BaseController{
         return RookieJsonResult.ok(gridResult);
     }
 
+    @ApiOperation(value = "搜索商品列表", notes = "搜索商品列表", httpMethod = "GET")
+    @GetMapping("/search")
+    public RookieJsonResult search(
+            @ApiParam(name = "keywords", value = "商品id", required = true)
+            @RequestParam String keywords,
+            @ApiParam(name = "sort", value = "排序方法", required = false)
+            @RequestParam String sort,
+            @ApiParam(name = "page", value = "查询下一页的第几页", required = false)
+            @RequestParam Integer page,
+            @ApiParam(name = "pageSize", value = "分页的每一页显示的条数", required = false)
+            @RequestParam Integer pageSize) {
+
+        if (StringUtils.isBlank(keywords)) {
+            return RookieJsonResult.errorMsg(null);
+        }
+
+        // 如果参数不传，我们给这个参数一个默认值
+        if (page == null) {
+            page = 1;
+        }
+
+        if (pageSize == null) {
+            pageSize = PAGE_SIZE;
+        }
+
+        PagedGridResult gridResult = itemService.searchItems(keywords,
+                                                             sort,
+                                                             page,
+                                                             pageSize);
+
+        // 返回给前端的
+        return RookieJsonResult.ok(gridResult);
+    }
+
+    @ApiOperation(value = "通过分类id搜索商品列表", notes = "通过分类id搜索商品列表", httpMethod = "GET")
+    @GetMapping("/catItems")
+    public RookieJsonResult catItems(
+            @ApiParam(name = "catId", value = "三级分类id", required = true)
+            @RequestParam Integer catId,
+            @ApiParam(name = "sort", value = "排序方法", required = false)
+            @RequestParam String sort,
+            @ApiParam(name = "page", value = "查询下一页的第几页", required = false)
+            @RequestParam Integer page,
+            @ApiParam(name = "pageSize", value = "分页的每一页显示的条数", required = false)
+            @RequestParam Integer pageSize) {
+
+        if (catId == null) {
+            return RookieJsonResult.errorMsg(null);
+        }
+
+        if (page == null) {
+            page = 1;
+        }
+
+        if (pageSize == null) {
+            pageSize = PAGE_SIZE;
+        }
+
+        PagedGridResult grid = itemService.searchItemsByThirdCat(catId,
+                                                                    sort,
+                                                                    page,
+                                                                    pageSize);
+
+        return RookieJsonResult.ok(grid);
+    }
+
 
 }

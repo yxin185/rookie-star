@@ -10,4 +10,9 @@ public class BaseController {
 
     public static final Integer COMMENT_PAGE_SIZE = 10;
 
+    /**
+     * 搜索商品使得页面数量
+     */
+    public static final Integer PAGE_SIZE = 20;
+
 }
