@@ -290,3 +290,307 @@ public class UserBO {
     private String confirmPassword;
 ```
 
+## 3. 实现跨域配置，实现前后端联调配置
+
+配置`config`目录下的`CorsConfig`文件，使得前后端联通
+
+## 4. 用户登录功能
+
+1. `service`层`UserService`中添加相应方法，然后到`Controller`中写一下用户`login`的`controller`
+2. 登录后要隐藏掉用户的一些属性，使用`controller`中的`setNullProperty`方法实现
+3. 引入`CookieUtils`和`JsonUtils`工具类，在`login`和`regist`中设置`cookie`，实现用户信息在页面显示
+
+## 5. 聚合日志框架
+
+### 1. 移除默认的日志
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+    <exclusions>
+        <!--排除这个日志jar包-->
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
+
+### 2. 添加日志框架的依赖
+
+```xml
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.7.21</version>
+</dependency>
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-log4j12</artifactId>
+    <version>1.7.21</version>
+</dependency>
+```
+
+### 3. 创建 `log4j.properties` 并且放到资源文件目录下面 `src/main/resource` ，在 api 层
+
+```properties
+log4j.rootLogger=DEBUG,stdout,file
+log4j.additivity.org.apache=true
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.threshold=INFO
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%-5p %c{1}:%L - %m%n
+
+log4j.appender.file=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.file.layout=org.apache.log4j.PatternLayout
+log4j.appender.file.DatePattern='.'yyyy-MM-dd-HH-mm
+log4j.appender.file.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+log4j.appender.file.Threshold=INFO
+log4j.appender.file.append=true
+log4j.appender.file.File=/workspaces/logs/rookie-api/rookie.log
+```
+
+### 4. 使用
+
+```java
+final static Logger logger = LoggerFactory.getLogger(HelloController.class);
+```
+
+### 5. 使用 AOP 进行日志打印
+
+1. 先在 pom 中引入相应的依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-aop</artifactId>
+</dependency>
+```
+
+2. 在 api 层中加入 aspect 包，编写切面逻辑
+
+```java
+/**
+ * 切面表达式：
+ * execution 代表所要执行的表达式主体
+ * 第一处 * 代表方法返回类型 *代表所有类型
+ * 第二处 包名代表aop监控的类所在的包
+ * 第三处 .. 代表该包以及其子包下的所有类方法
+ * 第四处 * 代表类名，*代表所有类
+ * 第五处 *(..) *代表类中的方法名，(..)表示方法中的任何参数
+ *
+ */
+@Around("execution(* com.rookie.service.impl..*.*(..))")
+public Object recordTimeLog(ProceedingJoinPoint joinPoint) throws Throwable{
+    ...
+}
+```
+
+## 6. 用户退出登录需要清除 cookie
+
+使用到的接口就是 logout
+
+```java
+@ApiOperation(value = "用户退出登录", notes = "用户退出登录", httpMethod = "POST")
+@PostMapping("/logout")
+public RookieJsonResult logout(@RequestParam String userId,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
+    // 使用 Cookie 工具进行清除                 Cookie名字
+    CookieUtils.deleteCookie(request, response, "user");
+    // TODO 生成用户token，存入redis会话
+    // TODO 同步购物车数据  
+    return RookieJsonResult.ok();
+}
+```
+
+## 7. 开启 mybatis 日志 sql 打印
+
+​	方便在开发测试的时候，及时通过打印出的 sql 语句来分析问题
+
+```yml
+# mybatis 的配置中添加
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+```
+
+# （阶段二）
+
+## 1. 首页轮播图
+
+### 1. IndexController
+
+在第一个方法，**一定记得要返回 json 形式的对象给前端！！！！！！！**
+
+```java
+@ApiOperation(value = "获取首页轮播图列表", notes = "获取首页轮播图列表", httpMethod = "GET")
+@GetMapping("/carousel")
+// 返回值一定要使用 RookieJsonResult
+public RookieJsonResult carousel() {
+
+    List<Carousel> result = carouselService.queryAll(YesOrNo.YES.type);
+    return RookieJsonResult.ok(result);
+}
+```
+
+### 2. 加载与渲染大分类，实现一个懒加载的方式，只有当用户鼠标移过来才进行加载
+
+​	商品左侧分类导航栏，实现一种鼠标划过来才进行加载的方式
+
+### 3. 自定义 mapper 实现懒加载子分类展示
+
+1. 通用 mapper 无法实现复杂的查询，自己编写 SQL 查询语句，根据父分类 id 查询子分类列表
+2. 创建了新的自定义的 mapper 以及对应的 mapper.xml
+
+## 2. 实现首页商品推荐
+
+1. `ctrl alt o` 删除没有用到的包
+2. 前后端在 `ItemInfoVO` 中对应的名字要相互对应上，不然前端就拿不到这个数据
+
+```java
+// 后端
+public class ItemInfoVO {
+    private Items item;
+    private List<ItemsImg> itemImgList;
+    private List<ItemsSpec> itemSpecList;
+    private ItemsParam itemParams;
+}
+// 前端 item.html 659 行，几个值要对应起来
+	var item = itemInfo.item;
+	var itemImgListTemp = itemInfo.itemImgList;
+	var itemSpecListTemp = itemInfo.itemSpecList;
+	this.itemParams = itemInfo.itemParams;
+```
+
+## 3. 实现商品评价
+
+### 1. Spring Boot 整合 mybatis - pagehelper
+
+1. 引入分页插件依赖
+
+```xml
+<!--pagehelper -->
+<dependency>
+	<groupId>com.github.pagehelper</groupId>
+	<artifactId>pagehelper-spring-boot-starter</artifactId>
+	<version>1.2.12</version>
+</dependency>
+```
+
+2. 配置 yml
+
+```yaml
+# 分页插件配置
+pagehelper:
+  helperDialect: mysql
+  supportMethodsArguments: true
+```
+
+3. 使用分页插件，在查询前使用分页插件，原理：统一拦截 sql ，为其提供分页功能
+
+```java
+// ItemServiceImpl中查询前使用的分页
+/**
+ * page: 第几页
+ * pageSize: 每页显示条数
+ */
+PageHelper.startPage(page, pageSize);
+```
+
+4. 分页数据封装到 `PagedGridResult.java` 传给前端
+
+```java
+PageInfo<?> pageList = new PageInfo<>(list);
+PagedGridResult grid = new PagedGridResult();
+grid.setPage(page);
+grid.setRows(list);
+grid.setTotal(pageList.getPages());
+grid.setRecords(pageList.getTotal());
+```
+
+### 2. 评价区域，对用户信息进行脱敏
+
+引入工具类 `DesensitizationUtil.java`
+
+```java
+import sun.applet.Main;
+/**
+ * 通用脱敏工具类
+ * 可用于：
+ *      用户名
+ *      手机号
+ *      邮箱
+ *      地址等
+ */
+public class DesensitizationUtil {
+
+    private static final int SIZE = 6;
+    private static final String SYMBOL = "*";
+
+    public static void main(String[] args) {
+        String name = commonDisplay("慕课网");
+        String mobile = commonDisplay("13900000000");
+        String mail = commonDisplay("admin@imooc.com");
+        String address = commonDisplay("北京大运河东路888号");
+
+        System.out.println(name);
+        System.out.println(mobile);
+        System.out.println(mail);
+        System.out.println(address);
+    }
+
+    /**
+     * 通用脱敏方法
+     * @param value
+     * @return
+     */
+    public static String commonDisplay(String value) {
+        if (null == value || "".equals(value)) {
+            return value;
+        }
+        int len = value.length();
+        int pamaone = len / 2;
+        int pamatwo = pamaone - 1;
+        int pamathree = len % 2;
+        StringBuilder stringBuilder = new StringBuilder();
+        if (len <= 2) {
+            if (pamathree == 1) {
+                return SYMBOL;
+            }
+            stringBuilder.append(SYMBOL);
+            stringBuilder.append(value.charAt(len - 1));
+        } else {
+            if (pamatwo <= 0) {
+                stringBuilder.append(value.substring(0, 1));
+                stringBuilder.append(SYMBOL);
+                stringBuilder.append(value.substring(len - 1, len));
+
+            } else if (pamatwo >= SIZE / 2 && SIZE + 1 != len) {
+                int pamafive = (len - SIZE) / 2;
+                stringBuilder.append(value.substring(0, pamafive));
+                for (int i = 0; i < SIZE; i++) {
+                    stringBuilder.append(SYMBOL);
+                }
+                if ((pamathree == 0 && SIZE / 2 == 0) || (pamathree != 0 && SIZE % 2 != 0)) {
+                    stringBuilder.append(value.substring(len - pamafive, len));
+                } else {
+                    stringBuilder.append(value.substring(len - (pamafive + 1), len));
+                }
+            } else {
+                int pamafour = len - 2;
+                stringBuilder.append(value.substring(0, 1));
+                for (int i = 0; i < pamafour; i++) {
+                    stringBuilder.append(SYMBOL);
+                }
+                stringBuilder.append(value.substring(len - 1, len));
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+}
+```
+
