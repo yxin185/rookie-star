@@ -7,6 +7,7 @@ import com.rookie.pojo.ItemsParam;
 import com.rookie.pojo.ItemsSpec;
 import com.rookie.pojo.vo.CommentLevelCountsVO;
 import com.rookie.pojo.vo.ItemInfoVO;
+import com.rookie.pojo.vo.ShopcartVO;
 import com.rookie.service.ItemService;
 import com.rookie.utils.PagedGridResult;
 import com.rookie.utils.RookieJsonResult;
@@ -167,6 +168,21 @@ public class ItemsController extends BaseController{
                                                                     pageSize);
 
         return RookieJsonResult.ok(grid);
+    }
+
+    @ApiOperation(value = "根据商品规格ids查找最新的商品数据", notes = "根据商品规格ids查找最新的商品数据", httpMethod = "GET")
+    @GetMapping("/refresh")
+    public RookieJsonResult refresh(
+            @ApiParam(name = "itemSpecIds", value = "拼接的规格ids", required = true, example = "1001,1002,1003")
+            @RequestParam String itemSpecIds) {
+
+        if (StringUtils.isBlank(itemSpecIds)) {
+            return RookieJsonResult.ok();
+        }
+
+        List<ShopcartVO> list = itemService.queryItemsBySpecIds(itemSpecIds);
+
+        return RookieJsonResult.ok(list);
     }
 
 
