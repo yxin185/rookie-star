@@ -81,6 +81,7 @@ public class AddressServiceImpl implements AddressService {
         userAddressMapper.delete(address);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     @Override
     public void updateUserAddressToBeDefault(String userId, String addressId) {
         // 1. 查找默认地址，设置为不默认
@@ -99,5 +100,15 @@ public class AddressServiceImpl implements AddressService {
         defaultAddress.setUserId(userId);
         defaultAddress.setIsDefault(YesOrNoEnum.YES.type);
         userAddressMapper.updateByPrimaryKeySelective(defaultAddress);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public UserAddress queryUserAddress(String userId, String addressId) {
+        UserAddress userAddress = new UserAddress();
+        userAddress.setId(addressId);
+        userAddress.setUserId(userId);
+
+        return userAddressMapper.selectOne(userAddress);
     }
 }

@@ -8,6 +8,11 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class BaseController {
 
+    /**
+     * 购物车的 Cookie 名字
+     */
+    public static final String ROOKIE_SHOPCART = "shopcart";
+
     public static final Integer COMMENT_PAGE_SIZE = 10;
 
     /**
