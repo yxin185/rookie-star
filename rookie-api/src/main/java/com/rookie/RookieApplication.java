@@ -3,6 +3,7 @@ package com.rookie;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import tk.mybatis.spring.annotation.MapperScan;
 
 @SpringBootApplication
@@ -11,6 +12,7 @@ import tk.mybatis.spring.annotation.MapperScan;
 @MapperScan(basePackages = "com.rookie.mapper")
 // 扫描所有包以及相关组件包
 @ComponentScan(basePackages = {"com.rookie", "org.n3r.idworker"})
+@EnableScheduling       // 开启定时任务
 public class RookieApplication {
 
     public static void main(String[] args) {

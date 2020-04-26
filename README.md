@@ -3,8 +3,6 @@ Spring-Boot 后端项目练习
 ## 目的
 熟悉Spring Boot常用组件，了解开发流程。
 
-
-
 # 项目记录起步
 
 ## 1. 项目框架搭建
@@ -204,7 +202,7 @@ public class RookieApplication {
 3. 在service模块中添加相应逻辑，使用mapper操作数据库。注意，在Service的实现类上面要添加注解表明这是一个Bean，`@Service`
 4. 在api模块中添加测试StuFooController，访问数据库中的stu表，查询数据。记得添加`@RestController`注解
 
-# 实现单体电商项目核心功能
+# 1.1 实现单体电商项目核心功能
 
 - 用户注册与登录
 - Cookie 与 Session
@@ -417,7 +415,7 @@ public RookieJsonResult logout(@RequestParam String userId,
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 ```
 
-# （阶段二）
+# 1.2 订单、支付、购物车等
 
 ## 1. 首页轮播图
 
@@ -592,5 +590,74 @@ public class DesensitizationUtil {
     }
 
 }
+```
+
+## 4. 实现商品搜索
+
+1. 需要自定义相关的 sql 
+2. 在搜索栏的搜索和在分类栏的搜索分开来进行，逻辑上是一样的
+
+## 5. 实现收货地址相关
+
+1. 收货地址的新增、修改、删除、设置默认等
+2. 先从 `AddressService` 层开始设计，然后实现 `AddressServiceImpl`，再根据前端的接口，设计 `AddressController`
+
+## 6. 确认订单（待发货部分应该有一个后台管理系统，由卖家发货，暂时没有，后面可以以一个分支的方式补上来）
+
+> **流程:** 用户 ——> 选择商品——>加入购物车——>订单结算——>选择支付方式——>支付
+
+![](https://yxin-images.oss-cn-shenzhen.aliyuncs.com/img/Snipaste_2020-04-24_22-52-32.jpg)
+
+![](https://yxin-images.oss-cn-shenzhen.aliyuncs.com/img/Snipaste_2020-04-24_22-53-11.jpg)
+
+![](https://yxin-images.oss-cn-shenzhen.aliyuncs.com/img/Snipaste_2020-04-24_22-53-21.jpg)
+
+## 7. 创建订单
+
+1. 创建订单过程中的减库存操作可能会造成超卖，先使用数据库乐观锁来实现，后期**使用分布式锁（zookeeper redis）**
+
+## 8. 微信支付
+
+1. 账号和密码是在 `github` 上面找的
+2. 需要同步更新到前端代码的 `wxpay.html` 的189行
+
+```java
+headers.add("imoocUserId", "6567325-1528023922");
+headers.add("password", "342r-t450-gr4r-456y");
+```
+
+3. 要使用到内网穿透，以便使得本地的订单状态在支付之后能够和支付中心的一致
+
+4. 使用到的工具就是 `natapp`（注意这个工具开启之后，免费的可能公网地址会变，所以不得行的时候就去修改 `BaseController` 中的 `payReturnUrl` ）
+
+5. 这一部分的重点在于 `OrderServiceImpl.java` 中的 `createOrder()` 方法，其中包含了很多步骤
+6. 在 `OrdersController` 中调用了创建订单的方法
+
+## 9. 支付宝支付
+
+1. 同样需要在前端代码中修改 `alipayTempTransit.html` 118 119 行的账号和密码，同上
+
+## 10. 定时任务
+
+1. `@Scheduled(default = " ")`  中间的字符串在这个网站可以在线生成 `https://cron.qqe2.com/`
+
+2. 启动类开启 `@EnableScheduling       // 开启定时任务`
+3. 定时任务有弊端
+
+```java
+/**
+ * 使用定时任务关闭超期未支付订单，会存在的弊端：
+ * 1. 会有时间差，程序不严谨
+ *      10:39下单，11:00检查不足1小时，12:00检查，超过1小时多余21分钟
+ * 2. 不支持集群
+ *      单机没毛病，使用集群后，就会有多个定时任务
+ *      解决方案：只使用一台计算机节点，单独用来运行所有的定时任务
+ * 3. 会对数据库全表搜索，及其影响数据库性能：select * from order where orderStatus = 10;
+ * 定时任务，仅仅只适用于小型轻量级项目，传统项目
+ *
+ * 后续会涉及到消息队列：MQ-> RabbitMQ, RocketMQ, Kafka, ZeroMQ...
+ *      延时任务（队列）
+ *      10:12分下单的，未付款（10）状态，11:12分检查，如果当前状态还是10，则直接关闭订单即可
+ */
 ```
 
