@@ -661,3 +661,226 @@ headers.add("password", "342r-t450-gr4r-456y");
  */
 ```
 
+# （阶段1.3）用户中心
+
+1. 用户个人信息维护
+2. 用户头像上传
+3. 用户收货地址
+4. 用户订单管理
+5. 用户评论模块
+
+## 1. 用户中心
+
+1. 在 controller 层下面再新建一层用于存放用户中心相关，方便今后服务拆分等~
+
+   在 `CenterUserServiceImpl` 中的 `queryUserInfo` 返回给前端的是用户的所有信息，我们需要将密码隐去
+
+### 1. 查询用户信息
+
+```java
+@Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public Users queryUserInfo(String userId) {
+        Users user = usersMapper.selectByPrimaryKey(userId);
+        // 因为返回给前端的是用户全部信息，所以这里将密码隐去
+        user.setPassword(null);
+        return user;
+    }
+```
+
+### 2. 修改用户信息
+
+1. 从前端传递到后端的用户中心的用户信息经由 `CenterUserBO` 传递
+2. 在 `CenterUserController` 进行更新操作后得到的用户信息需要做一些隐藏，即 `setNullProperty` 的操作
+
+### 3. 使用 hibernate 验证用户信息
+
+1. `CenterUserBO`
+
+```java
+@ApiModel(value="用户对象", description="从客户端，由用户传入的数据封装在此entity中")
+public class CenterUserBO {
+
+    @ApiModelProperty(value="用户名", name="username", example="json", required = false)
+    private String username;
+    @ApiModelProperty(value="密码", name="password", example="123456", required = false)
+    private String password;
+    @ApiModelProperty(value="确认密码", name="confirmPassword", example="123456", required = false)
+    private String confirmPassword;
+
+
+    @NotBlank(message = "用户昵称不能为空")
+    @Length(max = 12, message = "用户昵称不能超过12位")
+    @ApiModelProperty(value="用户昵称", name="nickname", example="杰森", required = false)
+    private String nickname;
+
+    @Length(max = 12, message = "用户真实姓名不能超过12位")
+    @ApiModelProperty(value="真实姓名", name="realname", example="杰森", required = false)
+    private String realname;
+
+    @Pattern(regexp = "^(((13[0-9]{1})|(15[0-9]{1})|(18[0-9]{1}))+\\d{8})$", message = "手机号格式不正确")
+    @ApiModelProperty(value="手机号", name="mobile", example="13999999999", required = false)
+    private String mobile;
+
+    @Email
+    @ApiModelProperty(value="邮箱地址", name="email", example="imooc@imooc.com", required = false)
+    private String email;
+
+    @Min(value = 0, message = "性别选择不正确")
+    @Max(value = 2, message = "性别选择不正确")
+    @ApiModelProperty(value="性别", name="sex", example="0:女 1:男 2:保密", required = false)
+    private Integer sex;
+    @ApiModelProperty(value="生日", name="birthday", example="1900-01-01", required = false)
+    private Date birthday;
+}
+```
+
+2. 对应的 `Controller` 也要加上相应注解，`@Valid`，还有 `BindingResult`
+
+```java
+@PostMapping("update")
+public RookieJsonResult update(
+        @ApiParam(name = "userId", value = "用户 id", required = true)
+        @RequestParam String userId,
+        @RequestBody @Valid CenterUserBO centerUserBO,
+        BindingResult result,
+        HttpServletRequest request,
+        HttpServletResponse response) {}
+```
+
+## 2. 上传头像
+
+1. 先定义一个上传后文件的保存地址，暂时保存在 `F:\rookie-faces`
+2. 用户上传头像的位置，使用文件分隔符来分割。避免在不同操作系统下面的错误
+
+### 1. 属性资源文件与类映射（避免前面的那个地址在不同环境下来回切换，直接写到配置文件中）
+
+1. 使用配置文件来配置上述那个上传后的文件保存地址
+2. `resources` 目录下创建一个配置文件，`file.imageUserFaceLocation=F:\\rookie-faces`
+3. 创建 `FileUpload.java` 获得文件上传的位置，并在 `Controller` 中注入这个类之后就可以获得配置的文件保存位置了。
+
+```java
+@Component
+@ConfigurationProperties(prefix = "file")
+@PropertySource("classpath:file-upload-dev.properties")
+public class FileUpload {
+
+    private String imageUserFaceLocation;
+
+    public String getImageUserFaceLocation() {
+        return imageUserFaceLocation;
+    }
+
+    public void setImageUserFaceLocation(String imageUserFaceLocation) {
+        this.imageUserFaceLocation = imageUserFaceLocation;
+    }
+}
+```
+
+### 2. 为静态资源提供网络映射服务
+
+1. `WebMvcConfig.java`
+
+```java
+// 实现静态资源的映射
+@Override
+public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/**")
+            .addResourceLocations("classpath:/META-INF/resources/")  // 映射swagger2
+            .addResourceLocations("file:F:\\rookie-faces\\");  // 映射本地静态资源
+
+```
+
+2. 测试的映射地址
+
+```
+http://localhost:8088/1908017YR51G1XWH/face-1908017YR51G1XWH.png
+```
+
+### 3. 更新用户头像到数据库
+
+**文件上传，一定要对文件格式进行验证！**
+
+1. 由于浏览器可能存在缓存，所以在更新用户头像的时候，后端带上一个时间戳，让浏览器能够及时刷新新上传的头像。
+2. `CenterUserController.uploadFace()` 方法，可以好好研究一下这个地方
+3. **为防止被恶意上传非图片文件，需要在后端对文件后缀进行判断**
+
+```java
+// CenterUserController.uploadFace() 中
+//为防止后门，要判断一下上传的图片的格式
+if (!suffix.equalsIgnoreCase("png") &&
+        !suffix.equalsIgnoreCase("jpg") &&
+        !suffix.equalsIgnoreCase("jpeg")) {
+    return RookieJsonResult.errorMap("图片格式不正确");
+}
+```
+
+4. 限制上传文件的大小
+
+```yaml
+spring:  
+  servlet:
+    multipart:
+      max-file-size: 5120000 # 限制上传的文件大小为500 kb
+      max-request-size: 512000 # 请求大小为500 kb
+```
+
+**并捕获异常**
+
+```java
+@RestControllerAdvice
+public class CustomExceptionHandler {
+
+    // 上传问价超过 500 k， 捕获异常 MaxUploadSizeExceededException
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public RookieJsonResult handlerUploadFaceMax(MaxUploadSizeExceededException ex) {
+        return RookieJsonResult.errorMsg("文件大小不能超过500kb，请压缩或降低质量后再上传！");
+    }
+}
+```
+
+## 3. 订单管理
+
+**订单与订单状态是一对一的，订单与订单商品是一对多的**
+
+自定义查询语句
+
+```sql
+SELECT
+	od.id as orderId,
+	od.created_time as createTime,
+	od.pay_method as payMethod,
+	od.real_pay_amount as realPayAmount,
+	od.post_amount as postAmount,
+	os.order_status as orderStatus,
+	oi.item_id as itemId,
+	oi.item_name as itemName,
+	oi.item_img as itemImg,
+	oi.item_spec_name as itemSpecName,
+	oi.buy_counts as buyCounts,
+	oi.price as price
+FROM
+	orders od
+LEFT JOIN
+	order_status os
+on od.id = os.order_id
+LEFT JOIN
+	order_items oi
+ON od.id = oi.order_id
+WHERE
+	od.user_id = '1908017YR51G1XWH'
+AND
+	od.is_delete = 0
+ORDER BY
+	od.updated_time ASC
+	
+```
+
+### 1. 嵌套查询分页有 bug，官方 `pagehelper/Mybatis-PageHelper` 有讲
+
+重新修改 `OrderMapperCustom.xml`
+
+### 2. 遇到一个 bug
+
+写完一个模块发现所有模块提示 `Result Maps collection does not contain value for` 误，把报错模块检查一边全都没有问题，重新检查新建模块是发现问题
+使用 `mybatis` 的 `association` 关联查询，程序设计应该是返回实体类，一时大意写成 `resultMap`，改回 `resultType` 所有问题解决

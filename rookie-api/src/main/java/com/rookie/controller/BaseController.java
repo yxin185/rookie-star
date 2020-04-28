@@ -15,7 +15,7 @@ public class BaseController {
      */
     public static final String ROOKIE_SHOPCART = "shopcart";
 
-    public static final Integer COMMENT_PAGE_SIZE = 10;
+    public static final Integer COMMONPAGE_SIZE = 10;
 
     /**
      * 搜索商品使得页面数量
