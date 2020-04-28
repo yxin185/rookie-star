@@ -2,6 +2,8 @@ package com.rookie.controller;
 
 import org.springframework.stereotype.Controller;
 
+import java.io.File;
+
 /**
  * 作为所有 Controller 的父类，存放一些常量
  */
@@ -34,4 +36,8 @@ public class BaseController {
     // 这个看不到回调的状态
 //    String payReturnUrl = "http://api.z.mukewang.com/foodie-dev-api/orders/notifyMerchantOrderPaid";
 
+    // 用户上传头像的位置，使用文件分隔符来分割
+    public static final String IMAGE_USER_FACE_LOCATION = "F:"+ File.separator + "rookie-faces";
+
+//    public static final String IMAGE_USER_FACE_LOCATION = "F:\rookie-faces";
 }
