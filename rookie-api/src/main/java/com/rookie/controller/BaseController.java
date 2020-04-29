@@ -31,7 +31,9 @@ public class BaseController {
      * 这个http://39am5i.natappfree.cc地址
      * 因为是免费的内网穿透，所以如果关闭了natapp，需要重新修改
      */
-    String payReturnUrl = "http://hyptfc.natappfree.cc/orders/notifyMerchantOrderPaid";
+//    String payReturnUrl = "http://hyptfc.natappfree.cc/orders/notifyMerchantOrderPaid";
+    // 项目发布后的回调地址
+    String payReturnUrl = "http://api.yxin185.tech:8088/rookie-star/orders/notifyMerchantOrderPaid";
 
     // 这个看不到回调的状态
 //    String payReturnUrl = "http://api.z.mukewang.com/foodie-dev-api/orders/notifyMerchantOrderPaid";

@@ -21,6 +21,11 @@ public class CorsConfig {
         // 1. 添加cors配置信息
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:8080");
+        config.addAllowedOrigin("http://shop.yxin185.tech:8080");
+        config.addAllowedOrigin("http://center.yxin185.tech:8080");
+
+        config.addAllowedOrigin("http://shop.yxin185.tech");
+        config.addAllowedOrigin("http://center.yxin185.tech");
 
         config.addAllowedOrigin("*");
 

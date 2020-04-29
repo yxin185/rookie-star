@@ -1,0 +1,8 @@
+server:
+  port: 80
+
+spring:
+  datasource:                                           # 数据源的相关配置
+    url: jdbc:mysql://localhost:3306/rookie-star?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    username: ***
+    password: ***

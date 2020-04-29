@@ -11,6 +11,10 @@
 
     <artifactId>rookie-api</artifactId>
 
+    <!--<packaging>jar</packaging>-->
+    <!-- 打包war [1] -->
+    <packaging>war</packaging>
+
     <dependencies>
         <dependency>
             <!--
@@ -21,6 +25,13 @@
             <artifactId>rookie-service</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <!--打包 war 第三步-->
+        <!--<dependency>-->
+            <!--<groupId>javax.servlet</groupId>-->
+            <!--<artifactId>javax.servlet-api</artifactId>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
     </dependencies>
 
 </project>
