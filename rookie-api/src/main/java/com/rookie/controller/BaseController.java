@@ -33,7 +33,7 @@ public class BaseController {
      */
 //    String payReturnUrl = "http://hyptfc.natappfree.cc/orders/notifyMerchantOrderPaid";
     // 项目发布后的回调地址
-    String payReturnUrl = "http://api.yxin185.tech:8088/rookie-star/orders/notifyMerchantOrderPaid";
+    String payReturnUrl = "http://api.yxin185.tech:80/rookie-star/orders/notifyMerchantOrderPaid";
 
     // 这个看不到回调的状态
 //    String payReturnUrl = "http://api.z.mukewang.com/foodie-dev-api/orders/notifyMerchantOrderPaid";

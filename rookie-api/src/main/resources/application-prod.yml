@@ -1,8 +1,8 @@
 server:
-  port: 80
+  port: 8080
 
 spring:
   datasource:                                           # 数据源的相关配置
-    url: jdbc:mysql://localhost:3306/rookie-star?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false
-    username: ***
-    password: ***
+    url: jdbc:mysql://localhost:3306/rookie?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    username: username # 根据云端实际用户再做配置
+    password: password # 根据云端实际密码再做配置

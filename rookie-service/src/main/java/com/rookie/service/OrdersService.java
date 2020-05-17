@@ -1,8 +1,11 @@
 package com.rookie.service;
 
 import com.rookie.pojo.OrderStatus;
+import com.rookie.pojo.bo.ShopcartBO;
 import com.rookie.pojo.bo.SubmitOrderBO;
 import com.rookie.pojo.vo.OrderVO;
+
+import java.util.List;
 
 public interface OrdersService {
 
@@ -10,7 +13,7 @@ public interface OrdersService {
      * 用户创建订单相关信息
      * @param submitOrderBO
      */
-    public OrderVO createOrder(SubmitOrderBO submitOrderBO);
+    public OrderVO createOrder(List<ShopcartBO> shopcartBOList, SubmitOrderBO submitOrderBO);
 
     /**
      * 修改订单状态
