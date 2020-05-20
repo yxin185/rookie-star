@@ -94,7 +94,15 @@ public class IndexController {
         String subCatsStr = redisOperator.get("subCats:" + rootCatId);
         if (StringUtils.isBlank(subCatsStr)) {
             result = categoryService.getSubCatList(rootCatId);
-            redisOperator.set("subCats:" + rootCatId, JsonUtils.objectToJson(subCatsStr));
+            /**
+             * 预防缓存穿透的问题
+             */
+            if (result != null  && result.size() > 0) {
+                redisOperator.set("subCats:" + rootCatId, JsonUtils.objectToJson(subCatsStr));
+            } else {
+                // 给空值也加上缓存，并设置过期时间，预防缓存穿透
+                redisOperator.set("subCats:" + rootCatId, JsonUtils.objectToJson(subCatsStr), 5 * 60);
+            }
         } else {
             result = JsonUtils.jsonToList(subCatsStr, CategoryVO.class);
         }

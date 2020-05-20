@@ -7,10 +7,19 @@ spring:
     username: root
     password: root
   redis:
+    # 哨兵模式
+#    database: 0
+#    password: root
+#      sentinel:
+#        master: mymaster
+#        nodes: 192.168.13.132:26379,192.168.13.133:26379,192.168.13.134:26379
+  # redis 单价单实例
     database: 0
     host: 192.168.13.132 # 本地虚拟机的 ip 地址
     port: 6379
     password: root # 本地虚拟机 Redis 的密码
+
+
 
 mybatis:
   configuration:
