@@ -1,9 +1,23 @@
 package com.rookie.pojo.vo;
 
+import com.rookie.pojo.bo.ShopcartBO;
+
+import java.util.List;
+
 public class OrderVO {
 
     private String orderId;
     private MerchantOrdersVO merchantOrdersVO;
+
+    private List<ShopcartBO> toBeRemovedShopcartList;
+
+    public List<ShopcartBO> getToBeRemovedShopcartList() {
+        return toBeRemovedShopcartList;
+    }
+
+    public void setToBeRemovedShopcartList(List<ShopcartBO> toBeRemovedShopcartList) {
+        this.toBeRemovedShopcartList = toBeRemovedShopcartList;
+    }
 
     public String getOrderId() {
         return orderId;

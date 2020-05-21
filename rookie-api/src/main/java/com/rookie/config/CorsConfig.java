@@ -27,7 +27,7 @@ public class CorsConfig {
         config.addAllowedOrigin("http://shop.yxin185.tech");
         config.addAllowedOrigin("http://center.yxin185.tech");
 
-        config.addAllowedOrigin("*");
+//        config.addAllowedOrigin("*");
 
         // 设置是否发送cookie信息
         config.setAllowCredentials(true);
